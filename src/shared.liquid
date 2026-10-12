@@ -76,7 +76,7 @@
       { W: 388, H: 464, t: 18, c: 16, p: 12, g: 6, tab: 52, side: 150, band: 1 },
       { W: 388, H: 228, t: 16, c: 16, p: 10, g: 4, tab: 44, side: 120, band: 0 }
     ];
-    var MAX_CROP = 0.25, GROW_CROP = 0.2, MAX_LABEL = 0.6, ROW_MIN_W = 360, BAND_MAX_H = 160, TITLE_GROW = 1.75;
+    var MAX_CROP = 0.25, GROW_CROP = 0.2, MAX_LABEL = 0.6, ROW_MIN_W = 360, BAND_MAX_H = 160, TITLE_GROW = 1.75, MAX_LINES = 10;
 
     var TEXT = {
       en: ['Today’s picture isn’t out yet', 'Wikimedia Commons hasn’t published it yet. It appears at the next refresh.'],
@@ -158,11 +158,12 @@
       // Title gets the lines left after padding, gap and credit.
       var text = el.querySelector('.poty__text'), title = el.querySelector('.poty__title');
       var avail = text.clientHeight - 2 * P.p - P.g - credit.offsetHeight;
-      // A short caption in a large label grows (up to TITLE_GROW) as long as all of it, and its longest word, still fits.
+      // A short caption in a large label grows (up to TITLE_GROW) as long as all of it, in at most MAX_LINES, and its
+      // longest word, still fits.
       el.style.setProperty('--lines', 99);
       for (var t = P.t + 2; t <= Math.round(P.t * TITLE_GROW); t += 2) {
         el.style.setProperty('--t', t + 'px'); el.style.setProperty('--tlh', Math.round(t * 1.25) + 'px');
-        if (title.scrollHeight > avail || title.scrollWidth > title.clientWidth + 1) {
+        if (title.scrollHeight > Math.min(avail, MAX_LINES * Math.round(t * 1.25)) || title.scrollWidth > title.clientWidth + 1) {
           t -= 2;
           el.style.setProperty('--t', t + 'px'); el.style.setProperty('--tlh', Math.round(t * 1.25) + 'px');
           break;
@@ -170,7 +171,7 @@
         L.tlh = Math.round(t * 1.25);
       }
       if (title.scrollWidth > title.clientWidth + 1) el.classList.add('poty--hyphenate');
-      var n = Math.max(0, Math.min(10, Math.floor(avail / L.tlh)));
+      var n = Math.max(0, Math.min(MAX_LINES, Math.floor(avail / L.tlh)));
       el.style.setProperty('--lines', Math.max(n, 1));
       if (n === 0) el.classList.add('poty--notitle');
     }

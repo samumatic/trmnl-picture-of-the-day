@@ -45,7 +45,7 @@ bin/trmnlp lint
 bin/trmnlp test
 ```
 
-The tests use real Commons responses for a tall (2026-10-12) and a wide (2026-10-11) picture in [`tests/fixtures`](tests/fixtures).
+The tests use real Commons responses for a tall (2026-10-12) and a wide (2026-10-11) picture, with German and English captions, in [`tests/fixtures`](tests/fixtures).
 
 ## License
 

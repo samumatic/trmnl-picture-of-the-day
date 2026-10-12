@@ -27,4 +27,20 @@ RSpec.describe 'Picture of the Day' do
 
     it_behaves_like 'a publishable recipe'
   end
+
+  # The English caption of 2026-10-12 is long: its title may grow, but not past the lines it can show.
+  context 'with a long English caption' do
+    let(:mocks) { commons('commons_image', 'commons_caption_en') }
+    let(:custom_fields) { { 'language' => 'en' } }
+
+    it_behaves_like 'a publishable recipe'
+
+    %w[og_plus v2].each do |device|
+      it "shows the whole caption in the full view on #{device}" do
+        screen = trmnl.render(view: 'full', device:, mocks:, custom_fields:)
+        expect(screen.evaluate("(t => t.scrollHeight <= t.clientHeight + 1)(document.querySelector('.poty__title'))"))
+          .to be true
+      end
+    end
+  end
 end
