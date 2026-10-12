@@ -1,0 +1,218 @@
+{% capture potd_markup %}
+  {% if img_url != blank %}
+    <div class="poty" data-potd>
+      <div class="poty__img"><img class="image-dither" src="{{ img_url }}" alt=""></div>
+      <div class="poty__label">
+        <div class="poty__tab"><span class="poty__day"></span><span class="poty__mon"></span></div>
+        <div class="poty__text">
+          <p class="poty__title" lang="{{ caption_lang }}">{{ caption | escape }}</p>
+          <p class="poty__credit"><span class="poty__artist">{{ artist | escape }}</span><span class="poty__lic"><span class="poty__sep">, </span>{{ license | escape }}</span></p>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="poty poty--empty" data-potd-empty>
+      <svg class="poty__glyph" viewBox="0 0 512 512" aria-hidden="true"><g fill="#000"><path d="M64 104H290V152H72V424H408V222H456V432a40 40 0 0 1-40 40H64a40 40 0 0 1-40-40V144a40 40 0 0 1 40-40Z"/><circle cx="150" cy="226" r="38"/><path d="M72 424l118-150 72 86 58-62 88 126Z"/><path fill-rule="evenodd" d="M334 40h138a12 12 0 0 1 12 12v138a12 12 0 0 1-12 12H334a12 12 0 0 1-12-12V52a12 12 0 0 1 12-12Zm74 30-34 24v28l26-16v66h32V70Z"/></g></svg>
+      <div><p class="poty__empty-title"></p><p class="poty__empty-sub"></p></div>
+    </div>
+  {% endif %}
+{% endcapture %}
+
+<style>
+  .poty{position:relative;display:flex;width:100%;height:100%;overflow:hidden;background:#fff;color:#000;
+    font-family:'Inter Variable',Inter,sans-serif;font-optical-sizing:auto;visibility:hidden}
+  .poty--ready{visibility:visible}
+  .poty *{box-sizing:border-box;margin:0}
+  .poty--stack{flex-direction:column}
+  .poty--side{flex-direction:row}
+  .poty__img{flex:none;overflow:hidden;background:#000}
+  .poty--stack .poty__img{width:100%;border-bottom:3px solid #000}
+  .poty--side .poty__img{height:100%;border-right:3px solid #000}
+  .poty__img img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 50%;filter:grayscale(1)}
+  .poty__label{flex:1;min-width:0;min-height:0;display:flex}
+  .poty--row .poty__label{flex-direction:row;align-items:flex-start}
+  .poty--col .poty__label{flex-direction:column}
+  .poty__tab{flex:none;width:var(--tab);height:var(--tab);background:#000;color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .poty--band .poty__tab{height:100%}
+  .poty__day{font-weight:700;font-size:calc(var(--tab) * .44);line-height:1;letter-spacing:-.03em}
+  .poty__mon{font-weight:600;font-size:var(--c);line-height:1.25}
+  .poty__text{flex:1;align-self:stretch;min-width:0;min-height:0;display:flex;flex-direction:column;
+    justify-content:space-between;gap:var(--g);padding:var(--p)}
+  .poty__title{font-size:var(--t);line-height:var(--tlh);font-weight:600;letter-spacing:-.01em;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines);overflow:hidden;text-wrap:pretty}
+  .poty--notitle .poty__title{display:none}
+  /* Only a word longer than the line gets hyphenated (or broken). */
+  .poty--hyphenate .poty__title{hyphens:auto;overflow-wrap:break-word}
+  .poty__credit{font-size:var(--c);line-height:var(--clh);font-weight:500}
+  /* Stacked credit: artist up to 4 lines, licence on its own line, may wrap, never clipped. */
+  .poty__artist{font-weight:700;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;overflow-wrap:anywhere}
+  .poty__lic{display:block}
+  .poty__sep{display:none}
+  /* One-line credit in bottom bands: licence pinned, artist gets the ellipsis. */
+  .poty--credit1 .poty__credit{display:flex;white-space:nowrap}
+  .poty--credit1 .poty__artist{display:block;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .poty--credit1 .poty__lic{flex:none}
+  .poty--credit1 .poty__sep{display:inline}
+  .poty--empty{align-items:center;justify-content:center;gap:var(--g2);text-align:left}
+  .poty--empty-col{flex-direction:column;text-align:center}
+  .poty__glyph{flex:none;width:var(--glyph);height:var(--glyph)}
+  .poty__empty-title{font-size:var(--t);line-height:var(--tlh);font-weight:700}
+  .poty__empty-sub{font-size:var(--c);line-height:var(--clh);font-weight:500;max-width:var(--subw);margin-top:6px}
+</style>
+
+<script>
+  window.POTD_DATA = { date: {{ date | json }}, lang: {{ lang | json }}, w: {{ img_w | json }}, h: {{ img_h | json }} };
+
+  (function () {
+    if (window.potdDraw) return;
+
+    // Type and spacing per screen, from the design. A slot uses the profile closest to its shape, then its size.
+    var PROFILES = [
+      { W: 800, H: 480, t: 20, c: 16, p: 12, g: 4, tab: 72, side: 240, band: 1 },
+      { W: 480, H: 800, t: 24, c: 18, p: 20, g: 8, tab: 72, side: 200, band: 2 },
+      { W: 1000, H: 750, t: 28, c: 20, p: 18, g: 8, tab: 96, side: 300, band: 1 },
+      { W: 782, H: 228, t: 20, c: 16, p: 16, g: 6, tab: 64, side: 300, band: 1 },
+      { W: 388, H: 464, t: 18, c: 16, p: 12, g: 6, tab: 52, side: 150, band: 1 },
+      { W: 388, H: 228, t: 16, c: 16, p: 10, g: 4, tab: 44, side: 120, band: 0 }
+    ];
+    var MAX_CROP = 0.25, GROW_CROP = 0.2, MAX_LABEL = 0.6, ROW_MIN_W = 360, BAND_MAX_H = 160, TITLE_GROW = 1.75;
+
+    var TEXT = {
+      en: ['Today’s picture isn’t out yet', 'Wikimedia Commons hasn’t published it yet. It appears at the next refresh.'],
+      de: ['Das heutige Bild ist noch nicht da', 'Wikimedia Commons hat es noch nicht veröffentlicht. Es erscheint beim nächsten Aktualisieren.'],
+      es: ['La imagen de hoy aún no está disponible', 'Wikimedia Commons todavía no la ha publicado. Aparecerá en la próxima actualización.'],
+      nl: ['De afbeelding van vandaag is er nog niet', 'Wikimedia Commons heeft hem nog niet gepubliceerd. Hij verschijnt bij de volgende verversing.'],
+      pt: ['A imagem de hoje ainda não saiu', 'A Wikimedia Commons ainda não a publicou. Ela aparece na próxima atualização.']
+    };
+
+    function profile(w, h) {
+      var best = PROFILES[0], score = Infinity;
+      PROFILES.forEach(function (P) {
+        var s = Math.abs(Math.log(w / P.W)) + Math.abs(Math.log(h / P.H)) + 2 * Math.abs(Math.log(w / h * P.H / P.W));
+        if (s < score) { score = s; best = P; }
+      });
+      return best;
+    }
+
+    // The design's crop-vs-fit rule. bandCredit = credit lines reserved in a bottom band.
+    function plan(w, h, a, P, bandCredit) {
+      var tlh = Math.round(P.t * 1.25), clh = Math.round(P.c * 1.3);
+      var natH = w / a, natW = h * a;
+      var title = P.band > 0 ? P.band * tlh + P.g : 0;
+      // Smallest label below the image: a band beside the date tab, or (narrow) the tab above artist and licence.
+      var bmin = w >= ROW_MIN_W ? bandCredit * clh + 2 * P.p + title : P.tab + 2 * P.p + 2 * clh + title;
+      var stH = Math.min(natH, h - bmin), stCrop = 1 - stH / natH;
+      var sdW = Math.min(natW, w - P.side), sdCrop = 1 - sdW / natW;
+      var pref = a >= 1 ? ['stack', stCrop, 'side', sdCrop] : ['side', sdCrop, 'stack', stCrop];
+      var mode = pref[1] <= MAX_CROP ? pref[0] : pref[3] <= MAX_CROP ? pref[2] : stCrop <= sdCrop ? 'stack' : 'side';
+      var box;
+      if (mode === 'stack') {
+        box = stH;
+        if ((h - box) / h > MAX_LABEL) box = Math.max(box, Math.min(h * (1 - MAX_LABEL), w / (a * (1 - GROW_CROP))));
+      } else {
+        box = sdW;
+        if ((w - box) / w > MAX_LABEL) box = Math.max(box, Math.min(w * (1 - MAX_LABEL), h * a / (1 - GROW_CROP)));
+      }
+      box = Math.round(box);
+      var labelW = mode === 'stack' ? w : w - box, labelH = mode === 'stack' ? h - box : h;
+      var row = labelW >= ROW_MIN_W, band = row && labelH <= BAND_MAX_H;
+      return { mode: mode, box: box, row: row, band: band, labelH: labelH, tlh: tlh, clh: clh };
+    }
+
+    function apply(el, L, P, credit1) {
+      el.className = 'poty poty--' + L.mode + (L.row ? ' poty--row' : ' poty--col') +
+        (L.band ? ' poty--band' : '') + (credit1 ? ' poty--credit1' : '');
+      var s = el.style;
+      s.setProperty('--t', P.t + 'px'); s.setProperty('--tlh', L.tlh + 'px');
+      s.setProperty('--c', P.c + 'px'); s.setProperty('--clh', L.clh + 'px');
+      s.setProperty('--p', P.p + 'px'); s.setProperty('--g', P.g + 'px'); s.setProperty('--tab', P.tab + 'px');
+      var img = el.querySelector('.poty__img');
+      img.style.width = L.mode === 'side' ? L.box + 'px' : '';
+      img.style.height = L.mode === 'stack' ? L.box + 'px' : '';
+      var showMon = L.band ? L.labelH >= 56 : P.tab >= 56;
+      el.querySelector('.poty__mon').style.display = showMon ? '' : 'none';
+    }
+
+    function drawPicture(el, w, h, D) {
+      var P = profile(w, h), a = D.w && D.h ? D.w / D.h : 1.5;
+      var day = D.date ? parseInt(D.date.slice(8), 10) : new Date().getDate();
+      var date = D.date ? new Date(D.date + 'T12:00:00Z') : new Date();
+      var mon;
+      try { mon = new Intl.DateTimeFormat(D.lang || 'en', { month: 'short', timeZone: 'UTC' }).format(date); }
+      catch (e) { mon = new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(date); }
+      el.querySelector('.poty__day').textContent = day;
+      el.querySelector('.poty__mon').textContent = mon.replace(/\.$/, '');
+
+      var L = plan(w, h, a, P, 1);
+      var credit1 = L.band;
+      apply(el, L, P, credit1);
+      var artist = el.querySelector('.poty__artist'), credit = el.querySelector('.poty__credit');
+      // A band holds "Artist, licence" on one line; if it doesn't fit, reserve the stacked credit's lines.
+      if (credit1 && artist.scrollWidth > artist.clientWidth + 1) {
+        apply(el, L, P, false);
+        var lines = Math.round(credit.offsetHeight / L.clh);
+        L = plan(w, h, a, P, lines);
+        apply(el, L, P, false);
+      }
+      // Title gets the lines left after padding, gap and credit.
+      var text = el.querySelector('.poty__text'), title = el.querySelector('.poty__title');
+      var avail = text.clientHeight - 2 * P.p - P.g - credit.offsetHeight;
+      // A short caption in a large label grows (up to TITLE_GROW) as long as all of it, and its longest word, still fits.
+      el.style.setProperty('--lines', 99);
+      for (var t = P.t + 2; t <= Math.round(P.t * TITLE_GROW); t += 2) {
+        el.style.setProperty('--t', t + 'px'); el.style.setProperty('--tlh', Math.round(t * 1.25) + 'px');
+        if (title.scrollHeight > avail || title.scrollWidth > title.clientWidth + 1) {
+          t -= 2;
+          el.style.setProperty('--t', t + 'px'); el.style.setProperty('--tlh', Math.round(t * 1.25) + 'px');
+          break;
+        }
+        L.tlh = Math.round(t * 1.25);
+      }
+      if (title.scrollWidth > title.clientWidth + 1) el.classList.add('poty--hyphenate');
+      var n = Math.max(0, Math.min(10, Math.floor(avail / L.tlh)));
+      el.style.setProperty('--lines', Math.max(n, 1));
+      if (n === 0) el.classList.add('poty--notitle');
+    }
+
+    function drawEmpty(el, w, h, D) {
+      var P = profile(w, h), col = h >= 300, small = w <= 400 && h <= 240;
+      var t = TEXT[D.lang] || TEXT.en;
+      el.className = 'poty poty--empty' + (col ? ' poty--empty-col' : '');
+      var s = el.style;
+      s.setProperty('--t', P.t + 'px'); s.setProperty('--tlh', Math.round(P.t * 1.25) + 'px');
+      s.setProperty('--c', P.c + 'px'); s.setProperty('--clh', Math.round(P.c * 1.3) + 'px');
+      s.setProperty('--glyph', Math.round(Math.min(w, h) * (col ? 0.22 : 0.36)) + 'px');
+      s.setProperty('--g2', P.p * (col ? 2 : 1.5) + 'px');
+      s.setProperty('--subw', Math.min(520, w - 4 * P.p) + 'px');
+      el.querySelector('.poty__empty-title').textContent = t[0];
+      var sub = el.querySelector('.poty__empty-sub');
+      sub.textContent = t[1];
+      sub.style.display = small ? 'none' : '';
+    }
+
+    function whenFonts(cb) {
+      var done = false, go = function () { if (!done) { done = true; cb(); } };
+      if (!document.fonts || !document.fonts.load) return go();
+      Promise.all([500, 600, 700].map(function (w) { return document.fonts.load(w + ' 16px "Inter Variable"'); })).then(go, go);
+      setTimeout(go, 4000);
+    }
+
+    window.potdDraw = function () {
+      whenFonts(function () {
+        document.querySelectorAll('[data-potd], [data-potd-empty]').forEach(function (el) {
+          if (el.getAttribute('data-drawn')) return;
+          el.setAttribute('data-drawn', '1');
+          // Computed size is in the slot's own CSS px; getBoundingClientRect includes the zoom TRMNL X renders with.
+          var cs = getComputedStyle(el.parentNode);
+          var w = Math.round(parseFloat(cs.width)) || 800, h = Math.round(parseFloat(cs.height)) || 480;
+          if (el.hasAttribute('data-potd')) drawPicture(el, w, h, window.POTD_DATA);
+          else drawEmpty(el, w, h, window.POTD_DATA);
+          el.classList.add('poty--ready');
+        });
+      });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', window.potdDraw);
+    else window.potdDraw();
+  })();
+</script>
