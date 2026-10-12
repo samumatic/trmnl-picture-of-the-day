@@ -1,50 +1,51 @@
 {% capture potd_markup %}
   {% if img_url != blank %}
-    <div class="poty" data-potd>
-      <div class="poty__img"><img class="image-dither" src="{{ img_url }}" alt=""></div>
+    <div class="poty bg--white text--black" data-potd>
+      <div class="poty__img bg--black"><img class="image image--cover image-dither" src="{{ img_url }}" alt=""></div>
       <div class="poty__label">
-        <div class="poty__tab"><span class="poty__day"></span><span class="poty__mon"></span></div>
-        <div class="poty__text">
+        <div class="poty__tab flex flex--col flex--center gap--none bg--black text--white"><span class="poty__day"></span><span class="poty__mon"></span></div>
+        <div class="poty__text flex flex--col flex--between flex--stretch-x">
           <p class="poty__title" lang="{{ caption_lang }}">{{ caption | escape }}</p>
           <p class="poty__credit"><span class="poty__artist">{{ artist | escape }}</span><span class="poty__lic"><span class="poty__sep">, </span>{{ license | escape }}</span></p>
         </div>
       </div>
     </div>
   {% else %}
-    <div class="poty poty--empty" data-potd-empty>
-      <svg class="poty__glyph" viewBox="0 0 512 512" aria-hidden="true"><g fill="#000"><path d="M64 104H290V152H72V424H408V222H456V432a40 40 0 0 1-40 40H64a40 40 0 0 1-40-40V144a40 40 0 0 1 40-40Z"/><circle cx="150" cy="226" r="38"/><path d="M72 424l118-150 72 86 58-62 88 126Z"/><path fill-rule="evenodd" d="M334 40h138a12 12 0 0 1 12 12v138a12 12 0 0 1-12 12H334a12 12 0 0 1-12-12V52a12 12 0 0 1 12-12Zm74 30-34 24v28l26-16v66h32V70Z"/></g></svg>
-      <div><p class="poty__empty-title"></p><p class="poty__empty-sub"></p></div>
+    <div class="poty poty--empty bg--white text--black" data-potd-empty>
+      <svg class="poty__glyph" viewBox="0 0 512 512" aria-hidden="true"><g fill="currentColor"><path d="M64 104H290V152H72V424H408V222H456V432a40 40 0 0 1-40 40H64a40 40 0 0 1-40-40V144a40 40 0 0 1 40-40Z"/><circle cx="150" cy="226" r="38"/><path d="M72 424l118-150 72 86 58-62 88 126Z"/><path fill-rule="evenodd" d="M334 40h138a12 12 0 0 1 12 12v138a12 12 0 0 1-12 12H334a12 12 0 0 1-12-12V52a12 12 0 0 1 12-12Zm74 30-34 24v28l26-16v66h32V70Z"/></g></svg>
+      <div><p class="poty__empty-title"></p><p class="poty__empty-sub mt--1.5"></p></div>
     </div>
   {% endif %}
 {% endcapture %}
 
 <style>
-  .poty{position:relative;display:flex;width:100%;height:100%;overflow:hidden;background:#fff;color:#000;
+  .poty{position:relative;display:flex;width:100%;height:100%;overflow:hidden;
     font-family:'Inter Variable',Inter,sans-serif;font-optical-sizing:auto;visibility:hidden}
   .poty--ready{visibility:visible}
-  .poty *{box-sizing:border-box;margin:0}
+  .poty *{box-sizing:border-box}
   .poty--stack{flex-direction:column}
   .poty--side{flex-direction:row}
-  .poty__img{flex:none;overflow:hidden;background:#000}
+  .poty__img{flex:none;overflow:hidden}
   .poty--stack .poty__img{width:100%;border-bottom:3px solid #000}
   .poty--side .poty__img{height:100%;border-right:3px solid #000}
-  .poty__img img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 50%;filter:grayscale(1)}
+  /* Smooth scaling: the bg--/text-- classes above would hand the photo image-rendering:pixelated. */
+  .poty__img img{display:block;width:100%;height:100%;object-position:50% 50%;filter:grayscale(1);image-rendering:auto}
   .poty__label{flex:1;min-width:0;min-height:0;display:flex}
   .poty--row .poty__label{flex-direction:row;align-items:flex-start}
   .poty--col .poty__label{flex-direction:column}
-  .poty__tab{flex:none;width:var(--tab);height:var(--tab);background:#000;color:#fff;
-    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .poty__tab{flex:none;width:var(--tab);height:var(--tab)}
   .poty--band .poty__tab{height:100%}
   .poty__day{font-weight:700;font-size:calc(var(--tab) * .44);line-height:1;letter-spacing:-.03em}
-  .poty__mon{font-weight:600;font-size:var(--c);line-height:1.25}
-  .poty__text{flex:1;align-self:stretch;min-width:0;min-height:0;display:flex;flex-direction:column;
-    justify-content:space-between;gap:var(--g);padding:var(--p)}
-  .poty__title{font-size:var(--t);line-height:var(--tlh);font-weight:600;letter-spacing:-.01em;
+  .poty__mon, .poty__credit, .poty__empty-sub{font-size:var(--c)}
+  .poty__mon{font-weight:600;line-height:1.25}
+  .poty__text{flex:1;align-self:stretch;min-width:0;min-height:0;gap:var(--g);padding:var(--p)}
+  .poty__title, .poty__empty-title{font-size:var(--t);line-height:var(--tlh)}
+  .poty__title{font-weight:600;letter-spacing:-.01em;
     display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lines);overflow:hidden;text-wrap:pretty}
   .poty--notitle .poty__title{display:none}
   /* Only a word longer than the line gets hyphenated (or broken). */
   .poty--hyphenate .poty__title{hyphens:auto;overflow-wrap:break-word}
-  .poty__credit{font-size:var(--c);line-height:var(--clh);font-weight:500}
+  .poty__credit{flex:none;line-height:var(--clh);font-weight:500}
   /* Stacked credit: artist up to 4 lines, licence on its own line, may wrap, never clipped. */
   .poty__artist{font-weight:700;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;overflow-wrap:anywhere}
   .poty__lic{display:block}
@@ -54,11 +55,10 @@
   .poty--credit1 .poty__artist{display:block;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .poty--credit1 .poty__lic{flex:none}
   .poty--credit1 .poty__sep{display:inline}
-  .poty--empty{align-items:center;justify-content:center;gap:var(--g2);text-align:left}
-  .poty--empty-col{flex-direction:column;text-align:center}
+  .poty--empty{gap:var(--g2)}
   .poty__glyph{flex:none;width:var(--glyph);height:var(--glyph)}
-  .poty__empty-title{font-size:var(--t);line-height:var(--tlh);font-weight:700}
-  .poty__empty-sub{font-size:var(--c);line-height:var(--clh);font-weight:500;max-width:var(--subw);margin-top:6px}
+  .poty__empty-title{font-weight:700}
+  .poty__empty-sub{line-height:var(--clh);font-weight:500;max-width:var(--subw)}
 </style>
 
 <script>
@@ -121,7 +121,7 @@
     }
 
     function apply(el, L, P, credit1) {
-      el.className = 'poty poty--' + L.mode + (L.row ? ' poty--row' : ' poty--col') +
+      el.className = 'poty bg--white text--black poty--' + L.mode + (L.row ? ' poty--row' : ' poty--col') +
         (L.band ? ' poty--band' : '') + (credit1 ? ' poty--credit1' : '');
       var s = el.style;
       s.setProperty('--t', P.t + 'px'); s.setProperty('--tlh', L.tlh + 'px');
@@ -179,7 +179,7 @@
     function drawEmpty(el, w, h, D) {
       var P = profile(w, h), col = h >= 300, small = w <= 400 && h <= 240;
       var t = TEXT[D.lang] || TEXT.en;
-      el.className = 'poty poty--empty' + (col ? ' poty--empty-col' : '');
+      el.className = 'poty poty--empty bg--white text--black flex--center ' + (col ? 'flex--col text--center' : 'flex--row text--left');
       var s = el.style;
       s.setProperty('--t', P.t + 'px'); s.setProperty('--tlh', Math.round(P.t * 1.25) + 'px');
       s.setProperty('--c', P.c + 'px'); s.setProperty('--clh', Math.round(P.c * 1.3) + 'px');
