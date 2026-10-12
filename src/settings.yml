@@ -7,13 +7,7 @@ polling_verb: get
 framework_version: latest
 serverless_language: python
 refresh_interval_floor: ''
-polling_url: |-
-  {%- assign potd_lang = language | default: "auto" -%}
-  {%- if potd_lang == "auto" -%}{%- assign potd_lang = trmnl.user.locale | default: "en" | slice: 0, 2 | downcase -%}{%- endif -%}
-  {%- unless "cs de en es hu nl pt" contains potd_lang -%}{%- assign potd_lang = "en" -%}{%- endunless -%}
-  {%- assign potd_date = "now" | date: "%Y-%m-%d" -%}
-  https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&generator=images&titles=Template:Potd/{{ potd_date }}&prop=imageinfo&iiprop=url%7Csize%7Cextmetadata&iiurlwidth=1280&iiextmetadatafilter=Artist%7CLicenseShortName
-  https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=revisions&rvprop=content&rvslots=main&titles=Template:Potd/{{ potd_date }}%20({{ potd_lang }})%7CTemplate:Potd/{{ potd_date }}%20(en)
+polling_url: "{%- assign potd_lang = language | default: \"auto\" -%}\r\n{%- if potd_lang == \"auto\" -%}{%- assign potd_lang = trmnl.user.locale | default: \"en\" | slice: 0, 2 | downcase -%}{%- endif -%}\r\n{%- unless \"cs de en es hu nl pt\" contains potd_lang -%}{%- assign potd_lang = \"en\" -%}{%- endunless -%}\r\n{%- assign potd_date = \"now\" | date: \"%Y-%m-%d\" -%}\r\nhttps://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&generator=images&titles=Template:Potd/{{ potd_date }}&prop=imageinfo&iiprop=url%7Csize%7Cextmetadata&iiurlwidth=1280&iiextmetadatafilter=Artist%7CLicenseShortName\r\nhttps://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=revisions&rvprop=content&rvslots=main&titles=Template:Potd/{{ potd_date }}%20({{ potd_lang }})%7CTemplate:Potd/{{ potd_date }}%20(en)"
 polling_headers: user-agent=TRMNL-Picture-of-the-Day/1.0 (https://github.com/samumatic/trmnl-picture-of-the-day)
 polling_body: ''
 id: 503573
