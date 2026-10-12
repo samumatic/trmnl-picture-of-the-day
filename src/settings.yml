@@ -1,21 +1,16 @@
 ---
 strategy: polling
-no_screen_padding: 'yes'
+no_screen_padding: 'no'
 dark_mode: 'no'
 static_data: ''
 polling_verb: get
-framework_version: latest
-serverless_language: python
+framework_version: 3.4.0
+serverless_language: ''
 refresh_interval_floor: ''
-polling_url: |-
-  {%- assign potd_lang = language | default: "auto" -%}
-  {%- if potd_lang == "auto" -%}{%- assign potd_lang = trmnl.user.locale | default: "en" | slice: 0, 2 | downcase -%}{%- endif -%}
-  {%- unless "cs de en es hu nl pt" contains potd_lang -%}{%- assign potd_lang = "en" -%}{%- endunless -%}
-  {%- assign potd_date = "now" | date: "%Y-%m-%d" -%}
-  https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&generator=images&titles=Template:Potd/{{ potd_date }}&prop=imageinfo&iiprop=url%7Csize%7Cextmetadata&iiurlwidth=1280&iiextmetadatafilter=Artist%7CLicenseShortName
-  https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&prop=revisions&rvprop=content&rvslots=main&titles=Template:Potd/{{ potd_date }}%20({{ potd_lang }})%7CTemplate:Potd/{{ potd_date }}%20(en)
-polling_headers: user-agent=TRMNL-Picture-of-the-Day/1.0 (https://github.com/samumatic/trmnl-picture-of-the-day)
+polling_url: ''
+polling_headers: ''
 polling_body: ''
+id: 503573
 oauth_enabled: 'false'
 oauth_pkce_enabled: 'no'
 oauth_authorize_url: ''
@@ -36,28 +31,6 @@ oauth_token_field_name: ''
 oauth_expiry_field_name: ''
 oauth_expiry_strategy: ''
 oauth_fixed_expiry_ms: ''
-custom_fields:
-- keyname: language
-  field_type: select
-  name: Caption language
-  description: Auto follows the language of your TRMNL account. Captions not yet translated are shown in English.
-  description-de: Auto folgt der Sprache deines TRMNL-Kontos. Noch nicht übersetzte Bildbeschreibungen erscheinen auf Englisch.
-  options:
-  - Auto: auto
-  - Čeština: cs
-  - Deutsch: de
-  - English: en
-  - Español: es
-  - Magyar: hu
-  - Nederlands: nl
-  - Português: pt
-  default: auto
-- keyname: about
-  field_type: author_bio
-  name: About This Plugin
-  category: images,art
-  github_url: https://github.com/samumatic/trmnl-picture-of-the-day
-  description: 'Picture of the Day brings one outstanding photograph to your TRMNL every day: the Picture of the Day chosen by the volunteer community of Wikimedia Commons, the free media library behind Wikipedia. Expect landscapes, wildlife, architecture, historic photos and astronomy, each one picked from millions of freely licensed images.<br><br>The layout adapts to every picture. Wide photos fill the screen with a slim caption below, tall photos sit beside their caption, and only a small part of the image is ever cropped. A short description, the photographer and the licence are always shown, set in large, crisp type for e-paper. It works in every layout, on TRMNL OG and TRMNL X, in landscape and portrait.<br><br>Captions are available in Czech, Dutch, English, German, Hungarian, Portuguese and Spanish, following your account language by default. No account or API key is needed.<br><br>Picture of the Day is open source. Feedback, bug reports and ideas are welcome on <a href="https://github.com/samumatic/trmnl-picture-of-the-day" class="underline" target="_blank">GitHub</a>.<br><br>Images: Wikimedia Commons, each under its own free licence as shown on screen. This plugin is not affiliated with or endorsed by the Wikimedia Foundation.'
-name: Picture of the Day
-description: A great free photo, every day
-refresh_interval: 360
+name: Picture Of The Day
+description:
+refresh_interval:
