@@ -28,6 +28,20 @@ RSpec.describe 'Picture of the Day' do
     it_behaves_like 'a publishable recipe'
   end
 
+  # Before Commons publishes the day's picture: the empty state, on every view and screen.
+  context 'without a picture yet' do
+    let(:mocks) { { 'https://commons.wikimedia.org/w/api.php?*' => { json: {} } } }
+
+    it_behaves_like 'a publishable recipe'
+
+    %w[full half_horizontal half_vertical quadrant].each do |view|
+      it "says so in the #{view} view on TRMNL X in portrait" do
+        screen = trmnl.render(view:, device: 'v2', orientation: :portrait, mocks:, custom_fields:)
+        expect(screen).to have_text('Today’s picture isn’t out yet')
+      end
+    end
+  end
+
   # The English caption of 2026-10-12 is long: its title may grow, but not past the lines it can show.
   context 'with a long English caption' do
     let(:mocks) { commons('commons_image', 'commons_caption_en') }
